@@ -34,36 +34,30 @@ export default function Home() {
   };
 
   // 日付からXRP価格を取得（CoinGecko）
-  const fetchPrice = async () => {
-    if (!date) {
-      alert("日付を入力してください");
+const fetchPrice = async () => {
+  if (!date) {
+    alert("日付を入力してください");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    const res = await fetch(`/api/xrp-price?date=${date}`);
+    const data = await res.json();
+
+    if (!data.price) {
+      alert("価格が取得できませんでした");
+      setLoading(false);
       return;
     }
 
-    try {
-      setLoading(true);
-      const d = new Date(date);
-      const formatted = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
-
-      const res = await fetch(
-        `https://api.coingecko.com/api/v3/coins/ripple/history?date=${formatted}&localization=false`
-      );
-      const data = await res.json();
-
-      const price = data?.market_data?.current_price?.jpy;
-      if (!price) {
-        alert("その日の価格が取得できませんでした");
-        setLoading(false);
-        return;
-      }
-
-      setSellPrice(price.toString());
-      setLoading(false);
-    } catch (e) {
-      alert("価格取得エラー");
-      setLoading(false);
-    }
-  };
+    setSellPrice(String(data.price));
+    setLoading(false);
+  } catch {
+    alert("価格取得エラー");
+    setLoading(false);
+  }
+};
 
   const profit =
     Number(xrpAmount) * (Number(sellPrice) - Number(buyPrice)) || 0;
@@ -133,6 +127,9 @@ export default function Home() {
             🧾 税引後手取り: {Math.round(netProfit).toLocaleString()} 円
           </p>
         </div>
+        <p className="mt-6 text-xs text-gray-500 text-center">
+  ※ 本ツールは概算シミュレーションです。実際の税額は取引状況・控除・税制改正等により異なる場合があります。最終的な判断は税理士等の専門家にご確認ください。
+</p>
       </div>
     </div>
   );
